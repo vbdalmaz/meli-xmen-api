@@ -16,6 +16,7 @@ mvn spring-boot:run
 # Amazon Swagger Link
 http://ec2-18-231-121-204.sa-east-1.compute.amazonaws.com:8080/melixmen/swagger-ui.html
 
-# React Front end Tier
+# React Frontend 
 I'm developing a basic admin maybe monday (14/01) will be disponible for access on: 
+
 http://ec2-18-231-121-204.sa-east-1.compute.amazonaws.com:3000
