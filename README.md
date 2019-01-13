@@ -17,7 +17,7 @@ If you prefer you can use my vagrant script to deploy:
 https://github.com/vbdalmaz/meli-xmen-api-devops/
 
 # Amazon Swagger Link
-http://ec2-18-231-121-204.sa-east-1.compute.amazonaws.com:8080/melixmen/swagger-ui.html
+http://ec2-18-228-220-94.sa-east-1.compute.amazonaws.com:8080/melixmen/swagger-ui.html
 
 # React Frontend 
 I'm developing a basic admin maybe monday (14/01) will be disponible for access on: 
