@@ -8,6 +8,7 @@ import static br.com.melixmen.api.utils.ObjectCreator.getMutantDNASample2DNASDia
 import static br.com.melixmen.api.utils.ObjectCreator.getMutantDNASample2DNASHorizontally;
 import static br.com.melixmen.api.utils.ObjectCreator.getMutantDNASample2DNASVertically;
 import static br.com.melixmen.api.utils.ObjectCreator.getNoMutantDNASample;
+import static br.com.melixmen.api.utils.ObjectCreator.getMutantLongDNASample;
 import static br.com.melixmen.api.utils.ObjectCreator.getStats5050;
 import static br.com.melixmen.api.utils.ObjectCreator.getStatsAllMutants;
 import static br.com.melixmen.api.utils.ObjectCreator.getStatsNoMutants;
@@ -162,6 +163,11 @@ public class DNAServiceImplTest {
 		String invalidDNA[] = new String[] {"AGCGA","CAGTGC","TTATGT","AGAAGG","CCCCTA","TCACT"};
 		
 		dnaService.isMutant(invalidDNA);
+	}
+	
+	@Test
+	public void shouldReturnTrueBecauseIsALongMutantSample() throws Exception {
+		assertThat(dnaService.isMutant(getMutantLongDNASample().getDna())).isTrue();
 	}
 	    
 }

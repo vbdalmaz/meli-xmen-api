@@ -128,6 +128,9 @@ public class DNAServiceImpl implements DNAService {
 			dnaSequence += dnaValidSample[i][j];
 			int index = Arrays.binarySearch(MUTANT_DNA_SEQUENCE, dnaSequence);
 			searchResult = index < 0 ? -index - 1 : index;
+			
+			if(searchResult == MUTANT_DNA_SEQUENCE.length )
+                break;			
 
 			if (!((String) MUTANT_DNA_SEQUENCE[searchResult]).startsWith(dnaSequence))
 				break;
