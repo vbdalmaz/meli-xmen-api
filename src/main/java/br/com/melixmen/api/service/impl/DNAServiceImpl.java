@@ -40,12 +40,21 @@ public class DNAServiceImpl implements DNAService {
 	
 	@Override
 	public Boolean isMutant(String[] dnaSample) {
-		mutantSequenceMatchPosition  = new HashSet<>();
-		DNA dna = new DNA(dnaSample, identifySpecie(dnaSample));
+		DNA sample = getDNA(dnaSample);
+		
+		if(sample == null) {
+			mutantSequenceMatchPosition  = new HashSet<>();
+			sample = new DNA(dnaSample, identifySpecie(dnaSample));
+	
+			saveAndRefreshCache(sample);
+		}
 
-		saveAndRefreshCache(dna);
-
-		return dna.getSpecieType() == SpecieType.MUTANT;
+		return sample.getSpecieType() == SpecieType.MUTANT;
+	}
+	
+	@Override
+	public DNA getDNA(String[] dnaSample) {
+		return dnaRepository.findByDna(dnaSample);
 	}
 
 	@Override
@@ -64,15 +73,17 @@ public class DNAServiceImpl implements DNAService {
 				dnaRepository.count());
 	}
 
-	private void saveAndRefreshCache(DNA dna) {
-		cacheManager.getCache(GET_STATS_CACHE).clear();
-		cacheManager.getCache(GET_ALL_DNAS_CACHE).clear();
-		
+	private void saveAndRefreshCache(DNA dnaSample) {
 		LOG.info("Refreshing getting all mutants and Stats cache");
 		CompletableFuture.runAsync(() -> {
-			saveDNA(dna);
-			getAllDNAs();
-			getStats();
+			if(getDNA(dnaSample.getDna()) == null ) {
+				cacheManager.getCache(GET_STATS_CACHE).clear();
+				cacheManager.getCache(GET_ALL_DNAS_CACHE).clear();
+				
+				saveDNA(dnaSample);
+				getAllDNAs();
+				getStats();
+			}
 		});
 	}
 

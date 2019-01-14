@@ -23,7 +23,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     public void init() {
         LOG.debug("init() {} (debug={})", WebConfig.class.getSimpleName(), true);
     }
-
+    
     @PreDestroy
     public void destroy() {
         LOG.debug("stop() {}", getClass().getSimpleName());
