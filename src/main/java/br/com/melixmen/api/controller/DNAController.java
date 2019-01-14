@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -32,13 +33,15 @@ public class DNAController extends BaseController{
 	@Autowired
 	private DNAService dnaService;
 	
+	@CrossOrigin(origins = "http://ec2-54-233-234-116.sa-east-1.compute.amazonaws.com:3000")
 	@RequestMapping(path = DNA_BASE_URL + ALL, method = { GET }, produces = {APPLICATION_JSON_UTF8_VALUE })
 	public @ResponseBody ResponseEntity<List<DNA>> getAllDNA() {
 		LOG.info("Getting all dnas");
 
 		return createResponse(dnaService.getAllDNAs());
 	}
-	
+													 
+	@CrossOrigin(origins = "http://ec2-54-233-234-116.sa-east-1.compute.amazonaws.com:3000")
 	@RequestMapping(path = DNA_BASE_URL + STATS, method = { GET }, produces = {APPLICATION_JSON_UTF8_VALUE })
 	public @ResponseBody ResponseEntity<Stats> getStats() {
 		LOG.info("Getting stats");
@@ -46,6 +49,7 @@ public class DNAController extends BaseController{
 		return createResponse(dnaService.getStats());
 	}
 
+	@CrossOrigin(origins = "http://ec2-54-233-234-116.sa-east-1.compute.amazonaws.com:3000")
 	@RequestMapping(path = DNA_BASE_URL + DNA_SERVICE, method = { POST }, produces = { APPLICATION_JSON_UTF8_VALUE }, consumes = {
 			APPLICATION_JSON_UTF8_VALUE })
 	public @ResponseBody ResponseEntity<?> postDNA(@RequestBody @NotBlank DNA dna) {

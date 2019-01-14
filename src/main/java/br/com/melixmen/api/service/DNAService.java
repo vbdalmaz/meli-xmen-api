@@ -19,6 +19,9 @@ public interface DNAService {
 	@Cacheable(cacheNames = GET_DNA_CACHE) 
 	public DNA saveDNA(DNA dna);
 	
+	@Cacheable(cacheNames = GET_DNA_CACHE) 
+	public DNA getDNA(String[] dnaSample);
+	
 	@Cacheable(cacheNames = GET_ALL_DNAS_CACHE)
 	public List<DNA> getAllDNAs();
 	

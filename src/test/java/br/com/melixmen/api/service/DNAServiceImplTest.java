@@ -169,5 +169,13 @@ public class DNAServiceImplTest {
 	public void shouldReturnTrueBecauseIsALongMutantSample() throws Exception {
 		assertThat(dnaService.isMutant(getMutantLongDNASample().getDna())).isTrue();
 	}
+	
+	@Test
+	public void shouldNotCallIndentifySpecieBecauseIsAKnownDNA() throws Exception {
+		when(dnaRepository.findByDna(getMutantLongDNASample().getDna())).thenReturn(getMutantLongDNASample());
+		
+		assertThat(dnaService.isMutant(getMutantLongDNASample().getDna())).isTrue();
+		verify(dnaRepository, times(0)).save(getMutantLongDNASample());
+	}
 	    
 }
