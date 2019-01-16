@@ -30,16 +30,20 @@ public class DNAServiceImpl implements DNAService {
 	private static final Logger LOG = LoggerFactory.getLogger(DNAServiceImpl.class);
 
 	private char[][] dnaValidSample;
-	private 	Set<String> mutantSequenceMatchPosition; 
+	private Set<String> mutantSequenceMatchPosition;
 
 	@Autowired
 	DNARepository dnaRepository;
-	
+
 	@Autowired
 	CacheManager cacheManager;
-	
+
 	@Override
 	public Boolean isMutant(String[] dnaSample) {
+		if(dnaSample == null || dnaSample[0] == null) {
+			throw new DNAInvalidException("Invalid DNA Structure");
+		}
+		
 		DNA sample = getDNA(dnaSample);
 		
 		if(sample == null) {
@@ -51,7 +55,7 @@ public class DNAServiceImpl implements DNAService {
 
 		return sample.getSpecieType() == SpecieType.MUTANT;
 	}
-	
+
 	@Override
 	public DNA getDNA(String[] dnaSample) {
 		return dnaRepository.findByDna(dnaSample);
@@ -69,17 +73,16 @@ public class DNAServiceImpl implements DNAService {
 
 	@Override
 	public Stats getStats() {
-		return new Stats(dnaRepository.countBySpecieType(SpecieType.MUTANT),
-				dnaRepository.count());
+		return new Stats(dnaRepository.countBySpecieType(SpecieType.MUTANT), dnaRepository.count());
 	}
 
 	private void saveAndRefreshCache(DNA dnaSample) {
 		LOG.info("Refreshing getting all mutants and Stats cache");
 		CompletableFuture.runAsync(() -> {
-			if(getDNA(dnaSample.getDna()) == null ) {
+			if (getDNA(dnaSample.getDna()) == null) {
 				cacheManager.getCache(GET_STATS_CACHE).clear();
 				cacheManager.getCache(GET_ALL_DNAS_CACHE).clear();
-				
+
 				saveDNA(dnaSample);
 				getAllDNAs();
 				getStats();
@@ -88,19 +91,20 @@ public class DNAServiceImpl implements DNAService {
 	}
 
 	private SpecieType identifySpecie(String[] dnaSample) {
+		readValidateDNASample(dnaSample);
+		
 		int dnaSampleColumnsQuantity = dnaSample.length;
 		int dnaSampleLineQuantity = dnaSample[0].length();
 		int matches = 0;
 
-		readValidateDNASample(dnaSample);
-		
 		for (int dnaSampleRow = 0; dnaSampleRow < dnaSampleLineQuantity; dnaSampleRow++)
 			for (int dnaSampleColumn = 0; dnaSampleColumn < dnaSampleColumnsQuantity; dnaSampleColumn++)
 				for (int dnaSampleRowDelta = -1; dnaSampleRowDelta <= 1; dnaSampleRowDelta++)
 					for (int dnaSampleColumnDelta = -1; dnaSampleColumnDelta <= 1; dnaSampleColumnDelta++)
 						if (dnaSampleRowDelta != 0 || dnaSampleColumnDelta != 0) {
-							matches += findMuntantSequence(dnaSampleLineQuantity, dnaSampleColumnsQuantity, dnaSampleRow, dnaSampleColumn, dnaSampleRowDelta, dnaSampleColumnDelta);
-							if(matches >=2) {
+							matches += findMuntantSequence(dnaSampleLineQuantity, dnaSampleColumnsQuantity,
+									dnaSampleRow, dnaSampleColumn, dnaSampleRowDelta, dnaSampleColumnDelta);
+							if (matches >= 2) {
 								return SpecieType.MUTANT;
 							}
 						}
@@ -109,14 +113,18 @@ public class DNAServiceImpl implements DNAService {
 	}
 
 	private void readValidateDNASample(String[] dnaSample) {
-		int dnaSampleColumnsQuantity = dnaSample.length;
-		int dnaSampleLineQuantity = dnaSample[0].length();
-		int line = 0;
+		int line = 0, dnaSampleColumnsQuantity = dnaSample.length;
+		int dnaSampleLineQuantity = 0;
+		if(dnaSample[0] == null) {
+			throw new DNAInvalidException("Invalid Structure in line: " + line);
+		}
+	
+		dnaSampleLineQuantity =dnaSample[0].length();
 
 		dnaValidSample = new char[dnaSampleColumnsQuantity][dnaSampleLineQuantity];
 
 		for (String dnaLine : dnaSample) {
-			if (dnaSampleLineQuantity != dnaLine.length()) {
+			if (dnaSample == null || dnaSampleLineQuantity != dnaLine.length()) {
 				throw new DNAInvalidException("Invalid Structure in line: " + line);
 			}
 
@@ -129,37 +137,42 @@ public class DNAServiceImpl implements DNAService {
 		}
 	}
 
-	private int findMuntantSequence(int dnaSampleLineQuantity, int dnaSampleColumnsQuantity, int dnaSampleRow, int dnaSampleColumn, int dnaSampleRowDelta, int dnaSampleColumnDelta) {
-		String dnaSequence = "" + dnaValidSample[dnaSampleRow][dnaSampleColumn];;
+	private int findMuntantSequence(int dnaSampleLineQuantity, int dnaSampleColumnsQuantity, int dnaSampleRow,
+			int dnaSampleColumn, int dnaSampleRowDelta, int dnaSampleColumnDelta) {
+		String dnaSequence = "" + dnaValidSample[dnaSampleRow][dnaSampleColumn];
+		;
 		int searchResult, dnaMutantMatches = 0;
-		
-		for (int i = dnaSampleRow + dnaSampleRowDelta, j = dnaSampleColumn + dnaSampleColumnDelta; i >= 0 && j >= 0 && i < dnaSampleLineQuantity
+
+		for (int i = dnaSampleRow + dnaSampleRowDelta, j = dnaSampleColumn + dnaSampleColumnDelta; i >= 0 && j >= 0
+				&& i < dnaSampleLineQuantity
 				&& j < dnaSampleColumnsQuantity; i += dnaSampleRowDelta, j += dnaSampleColumnDelta) {
-			
+
 			dnaSequence += dnaValidSample[i][j];
 			int index = Arrays.binarySearch(MUTANT_DNA_SEQUENCE, dnaSequence);
 			searchResult = index < 0 ? -index - 1 : index;
-			
-			if(searchResult == MUTANT_DNA_SEQUENCE.length )
-                break;			
+
+			if (searchResult == MUTANT_DNA_SEQUENCE.length)
+				break;
 
 			if (!((String) MUTANT_DNA_SEQUENCE[searchResult]).startsWith(dnaSequence))
 				break;
 
-			if (MUTANT_DNA_SEQUENCE[searchResult].equals(dnaSequence) && !containsMatch(dnaSampleRow,dnaSampleColumn,i,j)) {
-				LOG.info("Mutant Dna found " + dnaSequence + " at " + dnaSampleRow + " " + dnaSampleColumn + " to " + i + " " + j);
+			if (MUTANT_DNA_SEQUENCE[searchResult].equals(dnaSequence)
+					&& !containsMatch(dnaSampleRow, dnaSampleColumn, i, j)) {
+				LOG.info("Mutant Dna found " + dnaSequence + " at " + dnaSampleRow + " " + dnaSampleColumn + " to " + i
+						+ " " + j);
 				dnaMutantMatches++;
 				mutantSequenceMatchPosition.add("" + dnaSampleRow + dnaSampleColumn + i + j);
-				
+
 			}
 		}
 
 		return dnaMutantMatches;
 	}
-	
-	private Boolean containsMatch(int dnaSampleRow,int dnaSampleColumn,int i, int j) {
-		return mutantSequenceMatchPosition.contains("" + dnaSampleRow + dnaSampleColumn + i + j) ||
-				mutantSequenceMatchPosition.contains("" + i + j + dnaSampleRow +  dnaSampleColumn);
-		
+
+	private Boolean containsMatch(int dnaSampleRow, int dnaSampleColumn, int i, int j) {
+		return mutantSequenceMatchPosition.contains("" + dnaSampleRow + dnaSampleColumn + i + j)
+				|| mutantSequenceMatchPosition.contains("" + i + j + dnaSampleRow + dnaSampleColumn);
+
 	}
 }
