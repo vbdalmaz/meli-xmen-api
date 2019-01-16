@@ -7,8 +7,8 @@ import static br.com.melixmen.api.utils.ObjectCreator.getDNAList;
 import static br.com.melixmen.api.utils.ObjectCreator.getMutantDNASample2DNASDiagonally;
 import static br.com.melixmen.api.utils.ObjectCreator.getMutantDNASample2DNASHorizontally;
 import static br.com.melixmen.api.utils.ObjectCreator.getMutantDNASample2DNASVertically;
-import static br.com.melixmen.api.utils.ObjectCreator.getNoMutantDNASample;
 import static br.com.melixmen.api.utils.ObjectCreator.getMutantLongDNASample;
+import static br.com.melixmen.api.utils.ObjectCreator.getNoMutantDNASample;
 import static br.com.melixmen.api.utils.ObjectCreator.getStats5050;
 import static br.com.melixmen.api.utils.ObjectCreator.getStatsAllMutants;
 import static br.com.melixmen.api.utils.ObjectCreator.getStatsNoMutants;
@@ -177,5 +177,22 @@ public class DNAServiceImplTest {
 		assertThat(dnaService.isMutant(getMutantLongDNASample().getDna())).isTrue();
 		verify(dnaRepository, times(0)).save(getMutantLongDNASample());
 	}
-	    
+	
+	@Test(expected = DNAInvalidException.class)
+	public void shouldThrowAnExceptionDueANullArray() throws Exception {
+		dnaService.isMutant(null);
+	}
+	
+	@Test(expected = DNAInvalidException.class)
+	public void shouldThrowAnExceptionDueAnEmptyArray() throws Exception {
+		String emptyDNA[] = new String[5];
+
+		dnaService.isMutant(emptyDNA);
+	}
+	
+	@Test(expected = DNAInvalidException.class)
+	public void shouldThrowAnExceptionDueAnNullLineInArray() throws Exception {
+		String invalidDNA[] = new String[] {"AGCGA","CAGTGC","TTATGT",null,"CCCCTA","TCACT"};
+		dnaService.isMutant(invalidDNA);
+	}   
 }
